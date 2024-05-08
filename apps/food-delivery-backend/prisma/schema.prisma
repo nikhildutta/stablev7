@@ -1,0 +1,1379 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DB_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  createdAt DateTime @default(now())
+  email     String?  @unique
+  firstName String?
+  id        String   @id @default(cuid())
+  lastName  String?
+  password  String
+  roles     Json
+  updatedAt DateTime @updatedAt
+  username  String   @unique
+}
+
+model AccessLog {
+  action         String?   @db.VarChar(255)
+  appUsers       AppUser   @relation(fields: [user_id], references: [id])
+  user_id        String
+  createdAt      DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  deviceInfo     Json?     @map("device_info") @db.Json
+  errorMessage   String?   @map("error_message")
+  id             String    @id @default(cuid()) @map("log_id") @db.VarChar(25)
+  ipAddress      String?   @map("ip_address") @db.VarChar(15)
+  responseStatus Int?      @map("response_status")
+  timestamp      DateTime? @db.Timestamp(6)
+  updatedAt      DateTime? @map("updated_at") @db.Timestamp(6)
+
+  @@map("AccessLogs")
+}
+
+model AccountRestaurantLookup {
+  accounts      Account    @relation(fields: [accountid], references: [id])
+  accountid     String
+  id            String     @id @default(cuid()) @map("account_restaurant_lookup_id") @db.VarChar(25)
+  restaurants   Restaurant @relation(fields: [restaurant_id], references: [id])
+  restaurant_id String
+}
+
+model Account {
+  accountRestaurantLookup AccountRestaurantLookup[]
+  accountsAddressMap      AccountsAddressMap[]
+  businessname            String?                   @db.VarChar(100)
+  city                    String?                   @db.VarChar(30)
+  createdAt               DateTime?                 @default(now()) @map("created_at") @db.Timestamp(6)
+  deliveryStateCode       String?                   @map("delivery_state_code") @db.VarChar(3)
+  email                   String                    @db.VarChar(255)
+  fssaiLicenseNumber      String?                   @map("fssai_license_number") @db.VarChar(255)
+  fssaiLicenseUrl         String?                   @map("fssai_license_url") @db.VarChar(255)
+  fssaiValidFrom          DateTime?                 @map("fssai_valid_from") @db.Timestamp(6)
+  fssaiValidTo            DateTime?                 @map("fssai_valid_to") @db.Timestamp(6)
+  id                      String                    @id @default(cuid()) @map("accountid") @db.VarChar(25)
+  inceptiondate           DateTime?                 @db.Timestamp(6)
+  isFssaiLicenseVerified  Boolean?                  @default(false) @map("is_fssai_license_verified")
+  ispaid                  Boolean?
+  mobilenumber            String?                   @db.VarChar(15)
+  pin                     String?                   @db.VarChar(10)
+  updatedAt               DateTime?                 @map("updated_at") @db.Timestamp(6)
+  username                String?                   @db.VarChar(50)
+
+  @@map("Accounts")
+}
+
+model AccountsAddressMap {
+  accounts   Account @relation(fields: [accountid], references: [id])
+  accountid  String
+  addresses  Address @relation(fields: [address_id], references: [id])
+  address_id String
+  id         String  @id @default(cuid()) @map("account_address_map_id") @db.VarChar(25)
+}
+
+model Address {
+  accountsAddressMap            AccountsAddressMap[]
+  addressLine1                  String?                         @map("address_line_1") @db.VarChar(100)
+  addressLine2                  String?                         @map("address_line_2") @db.VarChar(100)
+  addressLine3                  String?                         @map("address_line_3") @db.VarChar(100)
+  city                          String?                         @db.VarChar(30)
+  contactDetails                ContactDetail[]
+  country                       String?                         @db.VarChar(20)
+  createdAt                     DateTime?                       @default(now()) @map("created_at") @db.Timestamp(6)
+  customerAddressMap            CustomerAddressMap[]
+  deliveryInstructionAddressMap DeliveryInstructionAddressMap[]
+  geoLocations                  GeoLocation[]
+  id                            String                          @id @default(cuid()) @map("address_id") @db.VarChar(25)
+  isPrimary                     Boolean?                        @default(false) @map("is_primary")
+  nickName                      String?                         @map("nick_name") @db.VarChar(30)
+  orderHistory                  OrderHistory[]
+  pincode                       String?                         @db.VarChar(10)
+  state                         String?                         @db.VarChar(20)
+  updatedAt                     DateTime?                       @map("updated_at") @db.Timestamp(6)
+
+  @@map("Addresses")
+}
+
+model AppUser {
+  accessLogs            AccessLog[]
+  account_status        EnumAppUserAccountStatus? @default(Live)
+  couponRedemptions     CouponRedemption[]
+  createdAt             DateTime?                 @default(now()) @map("created_at") @db.Timestamp(6)
+  customerPreferences   CustomerPreference[]
+  customerSubscriptions CustomerSubscription[]
+  errorLogs             ErrorLog[]
+  favourites            Favourite[]
+  id                    String                    @id @default(cuid()) @map("user_id") @db.VarChar(25)
+  notifications         Notification[]
+  notificationSettings  NotificationSetting[]
+  orderHistory          OrderHistory[]
+  profilePicUrl         String?                   @map("profile_pic_url")
+  reports               Report[]
+  reservations          Reservation[]
+  rewards               Reward[]
+  settlementsBreakup    SettlementsBreakup[]
+  ssoLookup             SsoLookup[]
+  subscriptions         Subscription[]
+  updatedAt             DateTime?                 @map("updated_at") @db.Timestamp(6)
+  userCustomerLookup    UserCustomerLookup[]
+  userFeedbacks         UserFeedback[]
+  usersHashtagsMap      UsersHashtagsMap[]
+
+  @@map("AppUsers")
+}
+
+model AuditLog {
+  approvedBy     String?    @map("approved_by") @db.VarChar(25)
+  changedAt      DateTime?  @default(now()) @map("changed_at") @db.Timestamp(6)
+  id             String     @id @default(cuid()) @map("audit_id") @db.VarChar(25)
+  isApproved     Boolean?   @default(false) @map("is_approved")
+  newData        Json?      @map("new_data")
+  oldData        Json?      @map("old_data")
+  operationType  String?    @map("operation_type") @db.VarChar(10)
+  portalUsers    PortalUser @relation(fields: [portal_user_id], references: [id])
+  portal_user_id String
+  tableName      String?    @map("table_name") @db.VarChar(50)
+
+  @@map("AuditLogs")
+}
+
+model ComboGroup {
+  comboBasePrice      Decimal?                 @map("combo_base_price") @db.Decimal(10, 2)
+  comboDescription    String?                  @map("combo_description") @db.VarChar(255)
+  comboItemTable      ComboItemTable[]
+  comboItemWindowMap  ComboItemWindowMap[]
+  comboName           String                   @map("combo_name") @db.VarChar(100)
+  combo_type          EnumComboGroupComboType?
+  createdAt           DateTime?                @default(now()) @map("created_at") @db.Timestamp(6)
+  id                  String                   @id @default(cuid()) @map("combo_groups_id") @db.VarChar(25)
+  isBankCoupon        Boolean?                 @default(false) @map("is_bank_coupon")
+  isPlatformCoupon    Boolean?                 @default(false) @map("is_platform_coupon")
+  isRestuaruantCoupon Boolean?                 @default(false) @map("is_restuaruant_coupon")
+  restaurants         Restaurant               @relation(fields: [restaurant_id], references: [id])
+  restaurant_id       String
+  updatedAt           DateTime?                @map("updated_at") @db.Timestamp(6)
+
+  @@map("ComboGroups")
+}
+
+model ComboItemTable {
+  comboGroups         ComboGroup          @relation(fields: [combo_groups_id], references: [id])
+  combo_groups_id     String
+  createdAt           DateTime?           @default(now()) @map("created_at") @db.Timestamp(6)
+  id                  String              @id @default(cuid()) @map("combo_item_id") @db.VarChar(25)
+  isAddonAllowed      Boolean?            @default(false) @map("is_addon_allowed")
+  optionsVarientsItem OptionsVarientsItem @relation(fields: [option_variant_id], references: [id])
+  option_variant_id   String
+  updatedAt           DateTime?           @map("updated_at") @db.Timestamp(6)
+}
+
+model ComboItemWindowMap {
+  comboGroups     ComboGroup                           @relation(fields: [combo_groups_id], references: [id])
+  combo_groups_id String
+  createdAt       DateTime?                            @default(now()) @map("created_at") @db.Timestamp(6)
+  id              String                               @id @default(cuid()) @map("combo_item_window_map_id") @db.VarChar(25)
+  is247           Boolean?                             @default(false) @map("is_24_7")
+  timeWindow      TimeWindow                           @relation(fields: [time_window_id], references: [id])
+  time_window_id  String
+  time_window_day EnumComboItemWindowMapTimeWindowDay?
+  updatedAt       DateTime?                            @map("updated_at") @db.Timestamp(6)
+}
+
+model ComplaintItem {
+  complaintsBook ComplaintsBook @relation(fields: [complaint_id], references: [id])
+  complaint_id   String
+  createdAt      DateTime?      @default(now()) @map("created_at") @db.Timestamp(6)
+  id             String         @id @default(cuid()) @map("complaint_item_id") @db.VarChar(25)
+  isRefund       Boolean?       @default(false) @map("is_refund")
+  orderItems     OrderItem      @relation(fields: [order_item_id], references: [id])
+  order_item_id  String
+  updatedAt      DateTime?      @map("updated_at") @db.Timestamp(6)
+}
+
+model ComplaintsBook {
+  complaintItem      ComplaintItem[]
+  complaintsPhotos   ComplaintsPhoto[]
+  createdAt          DateTime?                            @default(now()) @map("created_at") @db.Timestamp(6)
+  id                 String                               @id @default(cuid()) @map("complaint_id") @db.VarChar(25)
+  issue_category     EnumComplaintsBookIssueCategory?
+  issueDescription   String?                              @map("issue_description") @db.VarChar(1000)
+  orderId            String                               @map("order_id") @db.VarChar(25)
+  paymentsBook       PaymentsBook                         @relation(fields: [payments_book_id], references: [id])
+  payments_book_id   String
+  refundAmount       Decimal?                             @map("refund_amount") @db.Decimal(10, 2)
+  refund_eligibility EnumComplaintsBookRefundEligibility?
+  refund_mode        EnumComplaintsBookRefundMode?
+  refund_type        EnumComplaintsBookRefundType?
+  ticketCreationTime DateTime?                            @default(now()) @map("ticket_creation_time") @db.Timestamp(6)
+  ticketId           Int                                  @default(autoincrement()) @map("ticket_id")
+  updatedAt          DateTime?                            @map("updated_at") @db.Timestamp(6)
+}
+
+model ComplaintsPhoto {
+  complaintImageUrl String?        @map("complaint_image_url")
+  complaintsBook    ComplaintsBook @relation(fields: [complaint_id], references: [id])
+  complaint_id      String
+  createdAt         DateTime?      @default(now()) @map("created_at") @db.Timestamp(6)
+  id                String         @id @default(cuid()) @map("complaint_photo_id") @db.VarChar(25)
+  updatedAt         DateTime?      @map("updated_at") @db.Timestamp(6)
+
+  @@map("ComplaintsPhotos")
+}
+
+model ContactDetail {
+  addresses          Address              @relation(fields: [address_id], references: [id])
+  address_id         String
+  contactHashtagsMap ContactHashtagsMap[]
+  contactName        String?              @map("contact_name") @db.VarChar(50)
+  contactNumber      String?              @map("contact_number") @db.VarChar(15)
+  createdAt          DateTime?            @default(now()) @map("created_at") @db.Timestamp(6)
+  id                 String               @id @default(cuid()) @map("contact_detail_id") @db.VarChar(25)
+  updatedAt          DateTime?            @map("updated_at") @db.Timestamp(6)
+
+  @@map("ContactDetails")
+}
+
+model ContactHashtagsMap {
+  contactDetails    ContactDetail @relation(fields: [contact_detail_id], references: [id])
+  contact_detail_id String
+  hashtags          Hashtag       @relation(fields: [hashtag_id], references: [id])
+  hashtag_id        String
+  id                String        @id @default(cuid()) @map("hashtag_map_id") @db.VarChar(25)
+}
+
+model CouponRedemption {
+  appUsers       AppUser   @relation(fields: [user_id], references: [id])
+  user_id        String
+  coupons        Coupon    @relation(fields: [coupon_id], references: [id])
+  coupon_id      String
+  createdAt      DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  id             String    @id @default(cuid()) @map("redemption_id") @db.VarChar(25)
+  isRedeemed     Boolean?  @default(false) @map("is_redeemed")
+  redemptionDate DateTime  @map("redemption_date") @db.Date
+  updatedAt      DateTime? @map("updated_at") @db.Timestamp(6)
+
+  @@map("CouponRedemptions")
+}
+
+model Coupon {
+  code              String             @unique @db.VarChar(255)
+  couponRedemptions CouponRedemption[]
+  createdAt         DateTime?          @default(now()) @map("created_at") @db.Timestamp(6)
+  discount          Discount           @relation(fields: [discount_id], references: [id])
+  discount_id       String
+  expirationDate    DateTime           @map("expiration_date") @db.Date
+  id                String             @id @default(cuid()) @map("coupon_id") @db.VarChar(25)
+  isActive          Boolean?           @default(true) @map("is_active")
+  orderHistory      OrderHistory[]
+  updatedAt         DateTime?          @map("updated_at") @db.Timestamp(6)
+
+  @@map("Coupons")
+}
+
+model CustomerAddressMap {
+  addresses  Address  @relation(fields: [address_id], references: [id])
+  address_id String
+  customers  Customer @relation(fields: [customerid], references: [id])
+  customerid String
+  id         String   @id @default(cuid()) @map("customer_address_map_id") @db.VarChar(25)
+}
+
+model CustomerPreference {
+  appUsers        AppUser   @relation(fields: [user_id], references: [id])
+  user_id         String
+  createdAt       DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  id              String    @id @default(cuid()) @map("preference_id") @db.VarChar(25)
+  preferenceType  String?   @map("preference_type") @db.VarChar(255)
+  preferenceValue String?   @map("preference_value") @db.VarChar(255)
+  updatedAt       DateTime? @map("updated_at") @db.Timestamp(6)
+
+  @@map("CustomerPreferences")
+}
+
+model CustomerSubscription {
+  activationDate    DateTime         @map("activation_date") @db.Date
+  appUsers          AppUser          @relation(fields: [user_id], references: [id])
+  user_id           String
+  createdAt         DateTime         @default(now()) @map("created_at") @db.Timestamp(6)
+  expirationDate    DateTime         @map("expiration_date") @db.Date
+  id                String           @id @default(cuid()) @map("customer_subscription_id") @db.VarChar(25)
+  renewalCount      Int              @default(0) @map("renewal_count")
+  subscriptionPlans SubscriptionPlan @relation(fields: [plan_id], references: [id])
+  plan_id           String
+  subscriptions     Subscription     @relation(fields: [subscription_id], references: [id])
+  subscription_id   String
+  updatedAt         DateTime?        @map("updated_at") @db.Timestamp(6)
+
+  @@map("CustomerSubscriptions")
+}
+
+model Customer {
+  additionaldetails  String?
+  anniversary        DateTime?            @db.Date
+  createdAt          DateTime?            @default(now()) @map("created_at") @db.Timestamp(6)
+  customerAddressMap CustomerAddressMap[]
+  dateOfBirth        DateTime?            @map("date_of_birth") @db.Date
+  email              String?              @db.VarChar(255)
+  gender             EnumCustomerGender?
+  id                 String               @id @default(cuid()) @map("customerid") @db.VarChar(25)
+  isEmailVerified    Boolean?             @default(false) @map("is_email_verified")
+  isMobileVerified   Boolean?             @default(false) @map("is_mobile_verified")
+  mobile             String               @db.VarChar(15)
+  name               String?              @db.VarChar(100)
+  updatedAt          DateTime?            @map("updated_at") @db.Timestamp(6)
+  userCustomerLookup UserCustomerLookup[]
+
+  @@map("Customers")
+}
+
+model DailyMenuItemStock {
+  availableStock Int?      @map("available_stock")
+  createdAt      DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  id             String    @id @default(cuid()) @map("daily_stock_id") @db.VarChar(25)
+  menuItems      MenuItem  @relation(fields: [menu_item_id], references: [id])
+  menu_item_id   String
+  totalStock     Int?      @map("total_stock")
+  updatedAt      DateTime? @map("updated_at") @db.Timestamp(6)
+}
+
+model DeliveryInstructionAddressMap {
+  addresses                  Address                    @relation(fields: [address_id], references: [id])
+  address_id                 String
+  deliveryPartnerInstruction DeliveryPartnerInstruction @relation(fields: [delivery_instruction_id], references: [id])
+  delivery_instruction_id    String
+  id                         String                     @id @default(cuid()) @map("customer_address_map_id") @db.VarChar(25)
+}
+
+model DeliveryPartnerInstruction {
+  addDirectionToReachAudioUrl    String?                         @map("add_direction_to_reach_audio_url")
+  addDirectionToReachInstruction String?                         @map("add_direction_to_reach_instruction") @db.VarChar(500)
+  avoidCallingBool               Boolean?                        @default(false) @map("avoid_calling_bool")
+  avoidRingingBellBool           Boolean?                        @default(false) @map("avoid_ringing_bell_bool")
+  createdAt                      DateTime?                       @default(now()) @map("created_at") @db.Timestamp(6)
+  deliveryInstructionAddressMap  DeliveryInstructionAddressMap[]
+  id                             String                          @id @default(cuid()) @map("delivery_instruction_id") @db.VarChar(25)
+  leaveAtDoorBool                Boolean?                        @default(false) @map("leave_at_door_bool")
+  leaveWithSecurityBool          Boolean?                        @default(false) @map("leave_with_security_bool")
+  petAtHome                      Boolean?                        @default(false) @map("pet_at_home")
+  updatedAt                      DateTime?                       @map("updated_at") @db.Timestamp(6)
+}
+
+model Discount {
+  coupons           Coupon[]
+  createdAt         DateTime?           @default(now()) @map("created_at") @db.Timestamp(6)
+  discountMenuItem  DiscountMenuItem[]
+  discountType      DiscountType        @relation(fields: [discount_type_id], references: [id])
+  discount_type_id  String
+  discountWindowMap DiscountWindowMap[]
+  expirationDate    DateTime            @map("expiration_date") @db.Date
+  id                String              @id @default(cuid()) @map("discount_id") @db.VarChar(25)
+  isActive          Boolean?            @default(true) @map("is_active")
+  maxDiscount       Int?                @map("max_discount")
+  minimumOrderValue Int?                @map("minimum_order_value")
+  typeOfDiscount    String?             @map("type_of_discount")
+  updatedAt         DateTime?           @map("updated_at") @db.Timestamp(6)
+  value             Decimal?            @db.Decimal
+}
+
+model DiscountMenuItem {
+  createdAt    DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  discount     Discount  @relation(fields: [discount_id], references: [id])
+  discount_id  String
+  id           String    @id @default(cuid()) @map("discount_menu_item_id") @db.VarChar(25)
+  menuItems    MenuItem  @relation(fields: [menu_item_id], references: [id])
+  menu_item_id String
+  updatedAt    DateTime? @map("updated_at") @db.Timestamp(6)
+}
+
+model DiscountType {
+  discount     Discount[]
+  discountType String?    @map("discount_type")
+  id           String     @id @default(cuid()) @map("discount_type_id") @db.VarChar(25)
+}
+
+model DiscountWindowMap {
+  createdAt       DateTime?                           @default(now()) @map("created_at") @db.Timestamp(6)
+  discount        Discount                            @relation(fields: [discount_id], references: [id])
+  discount_id     String
+  id              String                              @id @default(cuid()) @map("discount_window_map_id") @db.VarChar(25)
+  is247           Boolean?                            @default(false) @map("is_24_7")
+  timeWindow      TimeWindow                          @relation(fields: [time_window_id], references: [id])
+  time_window_id  String
+  time_window_day EnumDiscountWindowMapTimeWindowDay?
+  updatedAt       DateTime?                           @map("updated_at") @db.Timestamp(6)
+}
+
+model ErrorLog {
+  appUsers     AppUser   @relation(fields: [user_id], references: [id])
+  user_id      String
+  errorCode    Int?      @map("error_code")
+  errorMessage String?   @map("error_message") @db.VarChar(255)
+  id           String    @id @default(cuid()) @map("error_id") @db.VarChar(25)
+  requestInfo  Json?     @map("request_info") @db.Json
+  stackTrace   String?   @map("stack_trace")
+  timestamp    DateTime? @db.Timestamp(6)
+
+  @@map("ErrorLogs")
+}
+
+model FavouriteMenuItem {
+  createdAt    DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  favourites   Favourite @relation(fields: [Favourite_id], references: [id])
+  Favourite_id String
+  id           String    @id @default(cuid()) @map("Favourite_menu_item_id") @db.VarChar(25)
+  menuItems    MenuItem  @relation(fields: [menu_item_id], references: [id])
+  menu_item_id String
+
+  @@map("FavouriteMenuItems")
+}
+
+model FavouriteRestaurant {
+  createdAt     DateTime?  @default(now()) @map("created_at") @db.Timestamp(6)
+  favourites    Favourite  @relation(fields: [Favourite_id], references: [id])
+  Favourite_id  String
+  id            String     @id @default(cuid()) @map("Favourite_restaurant_id") @db.VarChar(25)
+  restaurants   Restaurant @relation(fields: [restaurant_id], references: [id])
+  restaurant_id String
+}
+
+model Favourite {
+  appUsers            AppUser               @relation(fields: [user_id], references: [id])
+  user_id             String
+  createdAt           DateTime?             @default(now()) @map("created_at") @db.Timestamp(6)
+  favouriteMenuItems  FavouriteMenuItem[]
+  favouriteRestaurant FavouriteRestaurant[]
+  id                  String                @id @default(cuid()) @map("Favourite_id") @db.VarChar(25)
+  updatedAt           DateTime?             @map("updated_at") @db.Timestamp(6)
+
+  @@map("Favourites")
+}
+
+model FulfillmentBook {
+  acceptedOrderBy             String       @map("accepted_order_by") @db.VarChar(255)
+  acceptedOrderStatus         Boolean?     @map("accepted_order_status")
+  acceptedOrderStatusAt       DateTime?    @map("accepted_order_status_at") @db.Timestamp(6)
+  createdAt                   DateTime?    @default(now()) @map("created_at") @db.Timestamp(6)
+  customerFulfillmentStatus   Boolean?     @map("customer_fulfillment_status")
+  customerFulfillmentStatusAt DateTime?    @map("customer_fulfillment_status_at") @db.Timestamp(6)
+  id                          String       @id @default(cuid()) @map("fulfillment_id") @db.VarChar(25)
+  markedFulfilledBy           String       @map("marked_fulfilled_by") @db.VarChar(25)
+  orderHistory                OrderHistory @relation(fields: [order_id], references: [id])
+  order_id                    String
+  partnerPickupAt             DateTime?    @map("partner_pickup_at") @db.Timestamp(6)
+  partnerPickupBy             String       @map("partner_pickup_by") @db.VarChar(255)
+  partnerPickupStatus         Boolean?     @map("partner_pickup_status")
+  readyForPickupBy            String       @map("ready_for_pickup_by") @db.VarChar(255)
+  readyForPickupStatus        Boolean?     @map("ready_for_pickup_status")
+  readyForPickupStatusAt      DateTime?    @map("ready_for_pickup_status_at") @db.Timestamp(6)
+  updatedAt                   DateTime?    @map("updated_at") @db.Timestamp(6)
+}
+
+model GeoLocation {
+  addresses  Address    @relation(fields: [address_id], references: [id])
+  address_id String
+  createdAt  DateTime?  @default(now()) @map("created_at") @db.Timestamp(6)
+  geofences  Geofence[]
+  id         String     @id @default(cuid()) @map("location_id") @db.VarChar(25)
+  isGeoFence Boolean?   @default(false) @map("is_geo_fence")
+  latitude   Decimal?   @db.Decimal(10, 7)
+  longitude  Decimal?   @db.Decimal(10, 7)
+  updatedAt  DateTime?  @map("updated_at") @db.Timestamp(6)
+
+  @@map("GeoLocations")
+}
+
+model Geofence {
+  createdAt    DateTime?   @default(now()) @map("created_at") @db.Timestamp(6)
+  description  String?     @db.VarChar(255)
+  geoLocations GeoLocation @relation(fields: [location_id], references: [id])
+  location_id  String
+  id           String      @id @default(cuid()) @map("geofence_id") @db.VarChar(25)
+  name         String?     @db.VarChar(100)
+  radius       Int?
+  updatedAt    DateTime?   @map("updated_at") @db.Timestamp(6)
+
+  @@map("Geofences")
+}
+
+model Hashtag {
+  contactHashtagsMap     ContactHashtagsMap[]
+  createdAt              DateTime?                @default(now()) @map("created_at") @db.Timestamp(6)
+  hashText               String?                  @map("hash_text") @db.VarChar(100)
+  id                     String                   @id @default(cuid()) @map("hashtag_id") @db.VarChar(25)
+  menuItemsHashtagsMap   MenuItemsHashtagsMap[]
+  ordersHashtagsMap      OrdersHashtagsMap[]
+  restaurantsHashtagsMap RestaurantsHashtagsMap[]
+  tag                    String?                  @unique @db.VarChar(150)
+  updatedAt              DateTime?                @map("updated_at") @db.Timestamp(6)
+  usersHashtagsMap       UsersHashtagsMap[]
+
+  @@map("Hashtags")
+}
+
+model ItemPackagingFee {
+  id           String   @id @default(cuid()) @map("item_packaging_fee_id") @db.VarChar(25)
+  menuItems    MenuItem @relation(fields: [menu_item_id], references: [id])
+  menu_item_id String
+  packingFee   Decimal? @map("packing_fee") @db.Decimal(3, 2)
+}
+
+model MenuCategory {
+  createdAt         DateTime?         @default(now()) @map("created_at") @db.Timestamp(6)
+  description       String?           @db.VarChar(500)
+  id                String            @id @default(cuid()) @map("menu_id") @db.VarChar(25)
+  isActive          Boolean?          @map("is_active")
+  menuSubCategories MenuSubCategory[]
+  name              String?           @db.VarChar(100)
+  restaurants       Restaurant        @relation(fields: [restaurant_id], references: [id])
+  restaurant_id     String
+  updatedAt         DateTime?         @map("updated_at") @db.Timestamp(6)
+
+  @@map("MenuCategories")
+}
+
+model MenuItemIngredient {
+  createdAt    DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  id           String    @id @default(cuid()) @map("ingredient_id") @db.VarChar(25)
+  ingredient   String?   @db.VarChar(100)
+  menuItems    MenuItem  @relation(fields: [menu_item_id], references: [id])
+  menu_item_id String
+  updatedAt    DateTime? @map("updated_at") @db.Timestamp(6)
+
+  @@map("MenuItemIngredients")
+}
+
+model MenuItemOption {
+  additionalPrice        Decimal?               @map("additional_price") @db.Decimal(10, 2)
+  createdAt              DateTime?              @default(now()) @map("created_at") @db.Timestamp(6)
+  description            String?                @db.VarChar(500)
+  id                     String                 @id @default(cuid()) @map("option_id") @db.VarChar(25)
+  isDefault              Boolean?               @default(false) @map("is_default")
+  menuItemsOptionsGroups MenuItemsOptionsGroup  @relation(fields: [menu_item_options_id], references: [id])
+  menu_item_options_id   String
+  name                   String?                @db.VarChar(100)
+  optionImageUrl         String?                @map("option_image_url")
+  optionsVarientsGroup   OptionsVarientsGroup[]
+  updatedAt              DateTime?              @map("updated_at") @db.Timestamp(6)
+
+  @@map("MenuItemOptions")
+}
+
+model MenuItem {
+  availableQuantity      Int?                    @map("available_quantity")
+  basePrice              Decimal?                @map("base_price") @db.Decimal(10, 2)
+  containsEgg            Boolean?                @map("contains_egg")
+  createdAt              DateTime?               @default(now()) @map("created_at") @db.Timestamp(6)
+  dailyMenuItemStock     DailyMenuItemStock[]
+  description            String?                 @db.VarChar(500)
+  discountMenuItem       DiscountMenuItem[]
+  favouriteMenuItems     FavouriteMenuItem[]
+  id                     String                  @id @default(cuid()) @map("menu_item_id") @db.VarChar(25)
+  imageUrl               String?                 @map("image_url")
+  ingredients            String?
+  isActive               Boolean?                @default(true) @map("is_active")
+  isDeliverable          Boolean?                @default(false) @map("is_deliverable")
+  isDineinAvailable      Boolean?                @default(false) @map("is_dinein_available")
+  isLimitedStock         Boolean?                @default(false) @map("is_limited_stock")
+  isPickup               Boolean?                @default(false) @map("is_pickup")
+  isVegetarian           Boolean?                @map("is_vegetarian")
+  itemPackagingFee       ItemPackagingFee[]
+  menuItemIngredients    MenuItemIngredient[]
+  menuItemsHashtagsMap   MenuItemsHashtagsMap[]
+  menuItemsOptionsGroups MenuItemsOptionsGroup[]
+  menuItemsWindowMap     MenuItemsWindowMap[]
+  menuSubCategories      MenuSubCategory         @relation(fields: [menu_sub_id], references: [id])
+  menu_sub_id            String
+  name                   String?                 @db.VarChar(100)
+  preparationTime        Int?                    @map("preparation_time")
+  shareSlug              String?                 @map("share_slug") @db.VarChar(255)
+  updatedAt              DateTime?               @map("updated_at") @db.Timestamp(6)
+
+  @@map("MenuItems")
+}
+
+model MenuItemsHashtagsMap {
+  hashtags     Hashtag  @relation(fields: [hashtag_id], references: [id])
+  hashtag_id   String
+  id           String   @id @default(cuid()) @map("hashtag_map_id") @db.VarChar(25)
+  menuItems    MenuItem @relation(fields: [menu_item_id], references: [id])
+  menu_item_id String
+}
+
+model MenuItemsOptionsGroup {
+  createdAt              DateTime?        @default(now()) @map("created_at") @db.Timestamp(6)
+  id                     String           @id @default(cuid()) @map("menu_item_options_id") @db.VarChar(25)
+  lowerLimit             Int?             @default(1) @map("lower_limit")
+  menuItemOptions        MenuItemOption[]
+  menuItems              MenuItem         @relation(fields: [menu_item_id], references: [id])
+  menu_item_id           String
+  optionGroupDescription String?          @map("option_group_description") @db.VarChar(500)
+  optionGroupName        String?          @map("option_group_name") @db.VarChar(100)
+  updatedAt              DateTime?        @map("updated_at") @db.Timestamp(6)
+  upperLimit             Int?             @default(1) @map("upper_limit")
+
+  @@map("MenuItemsOptionsGroups")
+}
+
+model MenuItemsWindowMap {
+  createdAt       DateTime?                            @default(now()) @map("created_at") @db.Timestamp(6)
+  id              String                               @id @default(cuid()) @map("menu_item_window_map_id") @db.VarChar(25)
+  is247           Boolean?                             @default(false) @map("is_24_7")
+  menuItems       MenuItem                             @relation(fields: [menu_item_id], references: [id])
+  menu_item_id    String
+  timeWindow      TimeWindow                           @relation(fields: [time_window_id], references: [id])
+  time_window_id  String
+  time_window_day EnumMenuItemsWindowMapTimeWindowDay?
+  updatedAt       DateTime?                            @map("updated_at") @db.Timestamp(6)
+}
+
+model MenuSubCategory {
+  createdAt      DateTime?    @default(now()) @map("created_at") @db.Timestamp(6)
+  id             String       @id @default(cuid()) @map("menu_sub_id") @db.VarChar(25)
+  isActive       Boolean?     @map("is_active")
+  menuCategories MenuCategory @relation(fields: [menu_id], references: [id])
+  menu_id        String
+  menuItems      MenuItem[]
+  name           String?      @db.VarChar(100)
+  updatedAt      DateTime?    @map("updated_at") @db.Timestamp(6)
+
+  @@map("MenuSubCategories")
+}
+
+model MerchantInvoice {
+  createdAt             DateTime?                         @default(now()) @map("created_at") @db.Timestamp(6)
+  id                    String                            @id @default(cuid()) @map("merchant_invoice_id") @db.VarChar(25)
+  invoiceGenerationDate DateTime?                         @map("invoice_generation_date") @db.Timestamp(6)
+  invoiceSentDate       DateTime?                         @map("invoice_sent_date") @db.Timestamp(6)
+  invoice_status        EnumMerchantInvoiceInvoiceStatus?
+  invoice_type          EnumMerchantInvoiceInvoiceType?
+  restaurants           Restaurant                        @relation(fields: [restaurant_id], references: [id])
+  restaurant_id         String
+  updatedAt             DateTime?                         @map("updated_at") @db.Timestamp(6)
+
+  @@map("MerchantInvoices")
+}
+
+model NotificationSetting {
+  appUsers     AppUser   @relation(fields: [user_id], references: [id])
+  user_id      String
+  createdAt    DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  id           String    @id @default(cuid()) @map("setting_id") @db.VarChar(25)
+  settingName  String?   @map("setting_name") @db.VarChar(100)
+  settingValue Boolean?  @default(true) @map("setting_value")
+  updatedAt    DateTime? @map("updated_at") @db.Timestamp(6)
+
+  @@map("NotificationSettings")
+}
+
+model Notification {
+  appUsers  AppUser   @relation(fields: [user_id], references: [id])
+  user_id   String
+  createdAt DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  id        String    @id @default(cuid()) @map("notification_id") @db.VarChar(25)
+  isRead    Boolean?  @default(false) @map("is_read")
+  message   String?
+
+  @@map("Notifications")
+}
+
+model OptionsAddOnsItem {
+  addOnName          String?            @map("add_on_name") @db.VarChar(100)
+  addOnPrice         Decimal?           @map("add_on_price") @db.Decimal(10, 2)
+  addonsImageUrl     String?            @map("addons_image_url")
+  containsEgg        Boolean?           @map("contains_egg")
+  createdAt          DateTime?          @default(now()) @map("created_at") @db.Timestamp(6)
+  id                 String             @id @default(cuid()) @map("option_add_on_id") @db.VarChar(25)
+  isVegetarian       Boolean?           @map("is_vegetarian")
+  optionsAddonsGroup OptionsAddonsGroup @relation(fields: [add_on_group_id], references: [id])
+  add_on_group_id    String
+  orderItemsAddons   OrderItemsAddon[]
+  updatedAt          DateTime?          @map("updated_at") @db.Timestamp(6)
+}
+
+model OptionsAddonsGroup {
+  addOnName           String?             @map("add_on_name") @db.VarChar(100)
+  addOnPrice          Decimal?            @map("add_on_price") @db.Decimal(10, 2)
+  addonsImageUrl      String?             @map("addons_image_url")
+  containsEgg         Boolean?            @map("contains_egg")
+  createdAt           DateTime?           @default(now()) @map("created_at") @db.Timestamp(6)
+  id                  String              @id @default(cuid()) @map("add_on_group_id") @db.VarChar(25)
+  isVegetarian        Boolean?            @map("is_vegetarian")
+  lowerLimit          Int?                @default(0) @map("lower_limit")
+  optionsAddOnsItem   OptionsAddOnsItem[]
+  optionsVarientsItem OptionsVarientsItem @relation(fields: [option_variant_id], references: [id])
+  option_variant_id   String
+  updatedAt           DateTime?           @map("updated_at") @db.Timestamp(6)
+  upperLimit          Int?                @map("upper_limit")
+}
+
+model OptionsVarientsGroup {
+  createdAt               DateTime?             @default(now()) @map("created_at") @db.Timestamp(6)
+  id                      String                @id @default(cuid()) @map("option_variants_group_id") @db.VarChar(25)
+  menuItemOptions         MenuItemOption        @relation(fields: [option_id], references: [id])
+  option_id               String
+  optionsVarientsItem     OptionsVarientsItem[]
+  optionVariantGroupName  String?               @map("option_variant_group_name") @db.VarChar(100)
+  updatedAt               DateTime?             @map("updated_at") @db.Timestamp(6)
+  variantGroupDescription String?               @map("variant_group_description") @db.VarChar(500)
+}
+
+model OptionsVarientsItem {
+  additionalPrice          Decimal?             @map("additional_price") @db.Decimal(10, 2)
+  comboItemTable           ComboItemTable[]
+  createdAt                DateTime?            @default(now()) @map("created_at") @db.Timestamp(6)
+  id                       String               @id @default(cuid()) @map("option_variant_id") @db.VarChar(25)
+  isDefault                Boolean?             @default(false) @map("is_default")
+  optionsAddonsGroup       OptionsAddonsGroup[]
+  optionsVarientsGroup     OptionsVarientsGroup @relation(fields: [option_variants_group_id], references: [id])
+  option_variants_group_id String
+  orderItems               OrderItem[]
+  updatedAt                DateTime?            @map("updated_at") @db.Timestamp(6)
+  variantDescription       String?              @map("variant_description") @db.VarChar(500)
+  variantImageUrl          String?              @map("variant_image_url")
+  variantName              String?              @map("variant_name") @db.VarChar(100)
+}
+
+model OrderHistory {
+  addresses              Address                    @relation(fields: [delivery_address_id], references: [id])
+  delivery_address_id    String
+  appUsers               AppUser                    @relation(fields: [user_id], references: [id])
+  user_id                String
+  coupons                Coupon                     @relation(fields: [coupon_id], references: [id])
+  coupon_id              String
+  createdAt              DateTime?                  @default(now()) @map("created_at") @db.Timestamp(6)
+  deliveryTipsAmount     Decimal?                   @map("delivery_tips_amount") @db.Decimal(5, 2)
+  discountAmount         Decimal?                   @map("discount_amount") @db.Decimal(10, 2)
+  estimatedDeliveryTime  DateTime?                  @map("estimated_delivery_time") @db.Timestamp(6)
+  finalAmount            Decimal?                   @map("final_amount") @db.Decimal(10, 2)
+  fulfillmentBook        FulfillmentBook[]
+  id                     String                     @id @default(cuid()) @map("order_id") @db.VarChar(25)
+  isCancelled            Boolean?                   @default(false) @map("is_cancelled")
+  isFulfilled            Boolean?                   @default(false) @map("is_fulfilled")
+  isPaid                 Boolean?                   @default(false) @map("is_paid")
+  isRejected             Boolean?                   @default(false) @map("is_rejected")
+  orderDateTime          DateTime?                  @default(now()) @map("order_date_time") @db.Timestamp(6)
+  orderIdRef             Int                        @default(autoincrement()) @map("order_id_ref")
+  orderItems             OrderItem[]
+  ordersHashtagsMap      OrdersHashtagsMap[]
+  order_type             EnumOrderHistoryOrderType?
+  packagingAmount        Decimal?                   @map("packaging_amount") @db.Decimal(3, 2)
+  paymentMethods         PaymentMethod              @relation(fields: [payment_method_id], references: [id])
+  payment_method_id      String
+  paymentsBook           PaymentsBook[]
+  preparationInstruction String?                    @map("preparation_instruction")
+  preparationTime        Int?                       @map("preparation_time")
+  ratings                Rating[]
+  rejectedBy             String                     @map("rejected_by") @db.VarChar(25)
+  restaurants            Restaurant                 @relation(fields: [restaurant_id], references: [id])
+  restaurant_id          String
+  reviews                Review[]
+  settlementsBreakup     SettlementsBreakup[]
+  totalAmount            Decimal?                   @map("total_amount") @db.Decimal(10, 2)
+  updatedAt              DateTime?                  @map("updated_at") @db.Timestamp(6)
+}
+
+model OrderItem {
+  complaintItem        ComplaintItem[]
+  createdAt            DateTime?           @default(now()) @map("created_at") @db.Timestamp(6)
+  customizationOptions String?             @map("customization_options") @db.VarChar(500)
+  id                   String              @id @default(cuid()) @map("order_item_id") @db.VarChar(25)
+  optionsVarientsItem  OptionsVarientsItem @relation(fields: [option_variant_id], references: [id])
+  option_variant_id    String
+  orderHistory         OrderHistory        @relation(fields: [order_id], references: [id])
+  order_id             String
+  orderItemsAddons     OrderItemsAddon[]
+  orderItemsRatings    OrderItemsRating[]
+  quantity             Int?
+
+  @@map("OrderItems")
+}
+
+model OrderItemsAddon {
+  createdAt         DateTime?         @default(now()) @map("created_at") @db.Timestamp(6)
+  id                String            @id @default(cuid()) @map("order_item_addons_id") @db.VarChar(25)
+  optionsAddOnsItem OptionsAddOnsItem @relation(fields: [option_add_on_id], references: [id])
+  option_add_on_id  String
+  orderItems        OrderItem         @relation(fields: [order_item_id], references: [id])
+  order_item_id     String
+  quantity          Int?
+  updatedAt         DateTime?         @map("updated_at") @db.Timestamp(6)
+
+  @@map("OrderItemsAddons")
+}
+
+model OrderItemsRating {
+  createdAt       DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  id              String    @id @default(cuid()) @map("order_item_rating_id") @db.VarChar(25)
+  orderItemRating Decimal?  @map("order_item_rating") @db.Decimal(2, 2)
+  orderItems      OrderItem @relation(fields: [order_item_id], references: [id])
+  order_item_id   String
+  ratings         Rating    @relation(fields: [rating_id], references: [id])
+  rating_id       String
+  updatedAt       DateTime? @map("updated_at") @db.Timestamp(6)
+
+  @@map("OrderItemsRatings")
+}
+
+model OrderPackagingFee {
+  id            String     @id @default(cuid()) @map("order_packaging_fee_id") @db.VarChar(25)
+  packingFee    Decimal?   @map("packing_fee") @db.Decimal(3, 2)
+  restaurants   Restaurant @relation(fields: [restaurant_id], references: [id])
+  restaurant_id String
+}
+
+model OrdersHashtagsMap {
+  hashtags     Hashtag      @relation(fields: [hashtag_id], references: [id])
+  hashtag_id   String
+  id           String       @id @default(cuid()) @map("hashtag_map_id") @db.VarChar(25)
+  orderHistory OrderHistory @relation(fields: [order_id], references: [id])
+  order_id     String
+}
+
+model PaymentMethod {
+  createdAt     DateTime?      @default(now()) @map("created_at") @db.Timestamp(6)
+  id            String         @id @default(cuid()) @map("method_id") @db.VarChar(25)
+  methodDetails String?        @map("method_details") @db.VarChar(500)
+  methodName    String?        @map("method_name") @db.VarChar(100)
+  orderHistory  OrderHistory[]
+  paymentsBook  PaymentsBook[]
+  updatedAt     DateTime?      @map("updated_at") @db.Timestamp(6)
+
+  @@map("PaymentMethods")
+}
+
+model PaymentsBook {
+  complaintsBook    ComplaintsBook[]
+  createdAt         DateTime?        @default(now()) @map("created_at") @db.Timestamp(6)
+  errorCode         Int?             @map("error_code")
+  id                String           @id @default(cuid()) @map("payments_book_id") @db.VarChar(25)
+  orderHistory      OrderHistory     @relation(fields: [order_id], references: [id])
+  order_id          String
+  paymentAmount     Decimal?         @map("payment_amount") @db.Decimal(10, 2)
+  paymentCurrency   String?          @default("INR") @map("payment_currency")
+  paymentDate       DateTime?        @map("payment_date") @db.Timestamp(6)
+  paymentMethods    PaymentMethod    @relation(fields: [payment_method_id], references: [id])
+  payment_method_id String
+  paymentStatus     Boolean?         @default(false) @map("payment_status")
+  updatedAt         DateTime?        @map("updated_at") @db.Timestamp(6)
+}
+
+model PayoutCycle {
+  createdAt          DateTime?                    @default(now()) @map("created_at") @db.Timestamp(6)
+  id                 String                       @id @default(cuid()) @map("payout_cycle_id") @db.VarChar(25)
+  netPayout          Decimal?                     @map("net_payout") @db.Decimal(10, 2)
+  numberOfOrders     Int?                         @map("number_of_orders")
+  payout_status      EnumPayoutCyclePayoutStatus?
+  restaurants        Restaurant                   @relation(fields: [restaurant_id], references: [id])
+  restaurant_id      String
+  settlementsBreakup SettlementsBreakup[]
+  timePeriodEnd      DateTime?                    @map("time_period_end") @db.Timestamp(6)
+  timePeriodStart    DateTime?                    @map("time_period_start") @db.Timestamp(6)
+  updatedAt          DateTime?                    @map("updated_at") @db.Timestamp(6)
+  utrNumber          String?                      @map("utr_number") @db.VarChar(255)
+  weekNumber         Int?                         @map("week_number")
+
+  @@map("PayoutCycles")
+}
+
+model PayoutInformationTable {
+  bankAccountNumber     String?    @map("bank_account_number") @db.VarChar(255)
+  bankIfscCode          String?    @map("bank_ifsc_code") @db.VarChar(15)
+  createdAt             DateTime?  @default(now()) @map("created_at") @db.Timestamp(6)
+  firstPayoutDate       DateTime?  @map("first_payout_date") @db.Timestamp(6)
+  id                    String     @id @default(cuid()) @map("payout_information_id") @db.VarChar(25)
+  isBankAccountVerified Boolean?   @default(false) @map("is_bank_account_verified")
+  panNumber             String     @map("pan_number") @db.VarChar(255)
+  payoutCycleLength     Int?       @default(7) @map("payout_cycle_length")
+  payoutDateOffset      Int?       @default(3) @map("payout_date_offset")
+  restaurants           Restaurant @relation(fields: [restaurant_id], references: [id])
+  restaurant_id         String
+  tanNumber             String?    @map("tan_number") @db.VarChar(255)
+  updatedAt             DateTime?  @map("updated_at") @db.Timestamp(6)
+}
+
+model PortalUser {
+  auditLogs                  AuditLog[]
+  createdAt                  DateTime?                    @default(now()) @map("created_at") @db.Timestamp(6)
+  emailId                    String?                      @map("email_id") @db.VarChar(255)
+  id                         String                       @id @default(cuid()) @map("portal_user_id") @db.VarChar(25)
+  isEmailIdVerified          Boolean?                     @default(false) @map("is_email_id_verified")
+  isPhoneNumberVerified      Boolean?                     @default(false) @map("is_phone_number_verified")
+  phoneNumber                String?                      @map("phone_number") @db.VarChar(15)
+  portalUsersRelationsLookup PortalUsersRelationsLookup[]
+  profilePicUrl              String?                      @map("profile_pic_url")
+  updatedAt                  DateTime?                    @map("updated_at") @db.Timestamp(6)
+
+  @@map("PortalUsers")
+}
+
+model PortalUsersRelationsLookup {
+  id             String                                  @id @default(cuid()) @map("relation_ship_lookup_id") @db.VarChar(25)
+  portalUsers    PortalUser                              @relation(fields: [portal_user_id], references: [id])
+  portal_user_id String
+  restaurants    Restaurant                              @relation(fields: [restaurant_id], references: [id])
+  restaurant_id  String
+  user_role      EnumPortalUsersRelationsLookupUserRole?
+}
+
+model Rating {
+  cleanliness       Decimal?           @db.Decimal(2, 2)
+  createdAt         DateTime?          @default(now()) @map("created_at") @db.Timestamp(6)
+  foodQuality       Decimal?           @map("food_quality") @db.Decimal(2, 2)
+  id                String             @id @default(cuid()) @map("rating_id") @db.VarChar(25)
+  orderHistory      OrderHistory       @relation(fields: [order_id], references: [id])
+  order_id          String
+  orderItemsRatings OrderItemsRating[]
+  ratingForCustomer Decimal?           @map("rating_for_customer") @db.Decimal(2, 2)
+  ratingOfDelivery  Decimal?           @map("rating_of_delivery") @db.Decimal(2, 2)
+  ratingOfOrder     Decimal?           @map("rating_of_order") @db.Decimal(2, 2)
+  service           Decimal?           @db.Decimal(2, 2)
+  updatedAt         DateTime?          @map("updated_at") @db.Timestamp(6)
+  valueForMoney     Decimal?           @map("value_for_money") @db.Decimal(2, 2)
+
+  @@map("Ratings")
+}
+
+model Report {
+  appUsers   AppUser   @relation(fields: [user_id], references: [id])
+  user_id    String
+  createdAt  DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  id         String    @id @default(cuid()) @map("report_id") @db.VarChar(25)
+  reportData Json?     @map("report_data") @db.Json
+  reportType String?   @map("report_type") @db.VarChar(255)
+  updatedAt  DateTime? @map("updated_at") @db.Timestamp(6)
+
+  @@map("Reports")
+}
+
+model Reservation {
+  appUsers        AppUser    @relation(fields: [user_id], references: [id])
+  user_id         String
+  createdAt       DateTime?  @default(now()) @map("created_at") @db.Timestamp(6)
+  id              String     @id @default(cuid()) @map("reservation_id") @db.VarChar(25)
+  partySize       Int?       @map("party_size")
+  reservationDate DateTime?  @map("reservation_date") @db.Timestamp(6)
+  reservationTime DateTime?  @map("reservation_time") @db.Time(0)
+  restaurants     Restaurant @relation(fields: [restaurant_id], references: [id])
+  restaurant_id   String
+  status          String?    @db.VarChar(50)
+  updatedAt       DateTime?  @map("updated_at") @db.Timestamp(6)
+
+  @@map("Reservations")
+}
+
+model RestaurantDetail {
+  createdAt      DateTime?  @default(now()) @map("created_at") @db.Timestamp(6)
+  deliveryCharge Decimal?   @map("delivery_charge") @db.Decimal(10, 2)
+  deliveryTime   DateTime?  @map("delivery_time") @db.Time(0)
+  description    String?    @db.VarChar(500)
+  id             String     @id @default(cuid()) @map("detail_id") @db.VarChar(25)
+  imageUrl       String?    @map("image_url")
+  minOrderValue  Decimal?   @map("min_order_value") @db.Decimal
+  rating         Decimal?   @db.Decimal(2, 2)
+  restaurants    Restaurant @relation(fields: [restaurant_id], references: [id])
+  restaurant_id  String
+  reviewCount    Int?       @map("review_count")
+  updatedAt      DateTime?  @map("updated_at") @db.Timestamp(6)
+
+  @@map("RestaurantDetails")
+}
+
+model RestaurantPreference {
+  createdAt       DateTime?  @default(now()) @map("created_at") @db.Timestamp(6)
+  id              String     @id @default(cuid()) @map("restaurant_preference_id") @db.VarChar(25)
+  preferenceType  String?    @map("preference_type") @db.VarChar(255)
+  preferenceValue String?    @map("preference_value") @db.VarChar(255)
+  restaurants     Restaurant @relation(fields: [restaurant_id], references: [id])
+  restaurant_id   String
+  updatedAt       DateTime?  @map("updated_at") @db.Timestamp(6)
+
+  @@map("RestaurantPreferences")
+}
+
+model RestaurantTimeWindowMap {
+  createdAt       DateTime?                                @default(now()) @map("created_at") @db.Timestamp(6)
+  day_of_the_week EnumRestaurantTimeWindowMapDayOfTheWeek?
+  id              String                                   @id @default(cuid()) @map("restaurant_window_map_id") @db.VarChar(25)
+  restaurants     Restaurant                               @relation(fields: [restaurant_id], references: [id])
+  restaurant_id   String
+  timeWindow      TimeWindow                               @relation(fields: [time_window_id], references: [id])
+  time_window_id  String
+  updatedAt       DateTime?                                @map("updated_at") @db.Timestamp(6)
+}
+
+model Restaurant {
+  accountRestaurantLookup    AccountRestaurantLookup[]
+  averageCost                Decimal?                        @map("average_cost") @db.Decimal(10, 2)
+  closure_status             EnumRestaurantClosureStatus?
+  comboGroups                ComboGroup[]
+  createdAt                  DateTime?                       @default(now()) @map("created_at") @db.Timestamp(6)
+  favouriteRestaurant        FavouriteRestaurant[]
+  id                         String                          @id @default(cuid()) @map("restaurant_id") @db.VarChar(25)
+  isActive                   Boolean?                        @map("is_active")
+  isDelivery                 Boolean?                        @default(true) @map("is_delivery")
+  isDineIn                   Boolean?                        @default(false) @map("is_dine_in")
+  isHidden                   Boolean?                        @default(false) @map("is_hidden")
+  isTakeaway                 Boolean?                        @default(false) @map("is_takeaway")
+  menuCategories             MenuCategory[]
+  merchantInvoices           MerchantInvoice[]
+  orderHistory               OrderHistory[]
+  orderPackagingFee          OrderPackagingFee[]
+  packaging_fee_type         EnumRestaurantPackagingFeeType?
+  payoutCycles               PayoutCycle[]
+  payoutInformationTable     PayoutInformationTable[]
+  portalUsersRelationsLookup PortalUsersRelationsLookup[]
+  reservations               Reservation[]
+  restaurantDetails          RestaurantDetail[]
+  restaurantIconUrl          String?                         @map("restaurant_icon_url")
+  restaurantIdRef            Int                             @default(autoincrement()) @map("restaurant_id_ref")
+  restaurantPreferences      RestaurantPreference[]
+  restaurantsHashtagsMap     RestaurantsHashtagsMap[]
+  restaurantTimeWindowMap    RestaurantTimeWindowMap[]
+  shareSlug                  String?                         @map("share_slug") @db.VarChar(255)
+  taxRateInformation         TaxRateInformation[]
+  updatedAt                  DateTime?                       @map("updated_at") @db.Timestamp(6)
+
+  @@map("Restaurants")
+}
+
+model RestaurantsHashtagsMap {
+  hashtags      Hashtag    @relation(fields: [hashtag_id], references: [id])
+  hashtag_id    String
+  id            String     @id @default(cuid()) @map("hashtag_map_id") @db.VarChar(25)
+  restaurants   Restaurant @relation(fields: [restaurant_id], references: [id])
+  restaurant_id String
+}
+
+model Review {
+  body         String?      @db.VarChar(500)
+  createdAt    DateTime?    @default(now()) @map("created_at") @db.Timestamp(6)
+  id           String       @id @default(cuid()) @map("review_id") @db.VarChar(25)
+  orderHistory OrderHistory @relation(fields: [order_id], references: [id])
+  order_id     String
+  reviewImg    String?      @map("review_img")
+  title        String?      @db.VarChar(255)
+  updatedAt    DateTime?    @map("updated_at") @db.Timestamp(6)
+
+  @@map("Reviews")
+}
+
+model Reward {
+  appUsers       AppUser   @relation(fields: [user_id], references: [id])
+  user_id        String
+  createdAt      DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  expirationDate DateTime? @map("expiration_date") @db.Date
+  id             String    @id @default(cuid()) @map("reward_id") @db.VarChar(25)
+  points         Int?      @default(0)
+  updatedAt      DateTime? @map("updated_at") @db.Timestamp(6)
+
+  @@map("Rewards")
+}
+
+model SettlementsBreakup {
+  amountForGstUnder95           Decimal?     @map("amount_for_gst_under_9_5") @db.Decimal(10, 2)
+  amountForTcs                  Decimal?     @map("amount_for_tcs") @db.Decimal(10, 2)
+  appUsers                      AppUser      @relation(fields: [user_id], references: [id])
+  user_id                       String
+  bankUtr                       String?      @map("bank_utr") @db.VarChar(255)
+  baseServiceFee                Decimal?     @map("base_service_fee") @db.Decimal(10, 2)
+  baseServiceFeePercentage      Decimal?     @map("base_service_fee_percentage") @db.Decimal(10, 2)
+  businessname                  String?      @db.VarChar(100)
+  cancellationOrRejectionReason String?      @map("cancellation_or_rejection_reason") @db.VarChar(500)
+  cancellationOrRejectionState  String?      @map("cancellation_or_rejection_state") @db.VarChar(100)
+  cancellationPolicy            String?      @map("cancellation_policy")
+  cashReceivedSelfDelivery      Decimal?     @map("cash_received_self_delivery") @db.Decimal(10, 2)
+  commissionableAmount          Decimal?     @map("commissionable_amount") @db.Decimal(10, 2)
+  createdAt                     DateTime?    @default(now()) @map("created_at") @db.Timestamp(6)
+  creditDebitNoteAdjustment     Decimal?     @map("credit_debit_note_adjustment") @db.Decimal(10, 2)
+  customerCompensation          Decimal?     @map("customer_compensation") @db.Decimal(10, 2)
+  customerPayable               Decimal?     @map("customer_payable") @db.Decimal(10, 2)
+  deliveryCharge                Decimal?     @map("delivery_charge") @db.Decimal(10, 2)
+  deliveryChargesRecovery       Decimal?     @map("delivery_charges_recovery") @db.Decimal(10, 2)
+  deliveryStateCode             String?      @map("delivery_state_code") @db.VarChar(3)
+  discountConstruct             String?      @map("discount_construct")
+  extraInventoryAds             Decimal?     @map("extra_inventory_ads") @db.Decimal(10, 2)
+  fulfilmentFee                 Decimal?     @map("fulfilment_fee") @db.Decimal(10, 2)
+  fulfilmentFeePerKm            Decimal?     @map("fulfilment_fee_per_km") @db.Decimal(10, 2)
+  gstPaidByPlatform             Decimal?     @map("gst_paid_by_platform") @db.Decimal(10, 2)
+  gstToBePaidByRestaurant       Decimal?     @map("gst_to_be_paid_by_restaurant") @db.Decimal(10, 2)
+  id                            String       @id @default(cuid()) @map("settlement_breakup_id") @db.VarChar(25)
+  netAdditions                  Decimal?     @map("net_additions") @db.Decimal(10, 2)
+  netDeductions                 Decimal?     @map("net_deductions") @db.Decimal(10, 2)
+  orderDateTime                 DateTime?    @map("order_date_time") @db.Timestamp(6)
+  orderDistanceKm               Decimal?     @map("order_distance_km") @db.Decimal(10, 2)
+  orderHistory                  OrderHistory @relation(fields: [order_id], references: [id])
+  order_id                      String
+  orderLevelPayout              Decimal?     @map("order_level_payout") @db.Decimal(10, 2)
+  orderStatus                   String?      @map("order_status") @db.VarChar(100)
+  orderType                     String?      @map("order_type") @db.VarChar(100)
+  packagingCharge               Decimal?     @map("packaging_charge") @db.Decimal(10, 2)
+  paymentMechanismFee           Decimal?     @map("payment_mechanism_fee") @db.Decimal(10, 2)
+  paymentMode                   String?      @map("payment_mode") @db.VarChar(100)
+  payoutCycles                  PayoutCycle  @relation(fields: [payout_cycle_id], references: [id])
+  payout_cycle_id               String
+  promoRecoveryAdjustment       Decimal?     @map("promo_recovery_adjustment") @db.Decimal(10, 2)
+  restaurantDiscountFromOthers  Decimal?     @map("restaurant_discount_from_others") @db.Decimal(10, 2)
+  restaurantDiscountFromPromo   Decimal?     @map("restaurant_discount_from_promo") @db.Decimal(10, 2)
+  restaurantId                  String       @map("restaurant_id") @db.VarChar(25)
+  settlementDate                DateTime?    @map("settlement_date") @db.Timestamp(6)
+  settlementStatus              String?      @map("settlement_status") @db.VarChar(100)
+  subtotal                      Decimal?     @db.Decimal(10, 2)
+  taxCollectedAtSource          Decimal?     @map("tax_collected_at_source") @db.Decimal(10, 2)
+  taxesOnServicePaymentFees     Decimal?     @map("taxes_on_service_payment_fees") @db.Decimal(10, 2)
+  tcsIgstAmount                 Decimal?     @map("tcs_igst_amount") @db.Decimal(10, 2)
+  tds194OAmount                 Decimal?     @map("tds_194o_amount") @db.Decimal(10, 2)
+  totalGstFromCustomers         Decimal?     @map("total_gst_from_customers") @db.Decimal(10, 2)
+  unsettledAmount               Decimal?     @map("unsettled_amount") @db.Decimal(10, 2)
+  updatedAt                     DateTime?    @map("updated_at") @db.Timestamp(6)
+  weekNo                        Int?         @map("week_no")
+}
+
+model SsoLookup {
+  appleEmail             String?   @map("apple_email") @db.VarChar(255)
+  appleFamilyName        String?   @map("apple_family_name") @db.VarChar(100)
+  appleGivenName         String?   @map("apple_given_name") @db.VarChar(100)
+  appleRefreshToken      String?   @map("apple_refresh_token") @db.VarChar(1024)
+  appleTokenExpiresAt    DateTime? @map("apple_token_expires_at") @db.Timestamp(6)
+  appleUserId            String?   @map("apple_user_id") @db.VarChar(255)
+  appUsers               AppUser   @relation(fields: [user_id], references: [id])
+  user_id                String
+  createdAt              DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  facebookAccessToken    String?   @map("facebook_access_token") @db.VarChar(1024)
+  facebookEmail          String?   @map("facebook_email") @db.VarChar(255)
+  facebookName           String?   @map("facebook_name") @db.VarChar(100)
+  facebookTokenExpiresAt DateTime? @map("facebook_token_expires_at") @db.Timestamp(6)
+  facebookUserId         String?   @map("facebook_user_id") @db.VarChar(255)
+  googleEmail            String?   @map("google_email") @db.VarChar(255)
+  googleFamilyName       String?   @map("google_family_name") @db.VarChar(100)
+  googleGivenName        String?   @map("google_given_name") @db.VarChar(100)
+  googleRefreshToken     String?   @map("google_refresh_token") @db.VarChar(1024)
+  googleTokenExpiresAt   DateTime? @map("google_token_expires_at") @db.Timestamp(6)
+  googleUserId           String?   @map("google_user_id") @db.VarChar(255)
+  id                     String    @id @default(cuid()) @map("sso_id") @db.VarChar(25)
+  twitterAccessToken     String?   @map("twitter_access_token") @db.VarChar(1024)
+  twitterHandle          String?   @map("twitter_handle") @db.VarChar(255)
+  twitterTokenSecret     String?   @map("twitter_token_secret") @db.VarChar(1024)
+  twitterUserId          String?   @map("twitter_user_id") @db.VarChar(255)
+  updatedAt              DateTime? @default(now()) @map("updated_at") @db.Timestamp(6)
+}
+
+model SubscriptionPlan {
+  createdAt             DateTime               @default(now()) @map("created_at") @db.Timestamp(6)
+  customerSubscriptions CustomerSubscription[]
+  description           String?                @db.VarChar(500)
+  duration              Int
+  durationUnit          String                 @map("duration_unit") @db.VarChar(50)
+  id                    String                 @id @default(cuid()) @map("plan_id") @db.VarChar(25)
+  isActive              Boolean                @default(true) @map("is_active")
+  name                  String                 @db.VarChar(100)
+  price                 Decimal                @db.Decimal(10, 2)
+  subscriptions         Subscription[]
+  updatedAt             DateTime?              @map("updated_at") @db.Timestamp(6)
+
+  @@map("SubscriptionPlans")
+}
+
+model Subscription {
+  appUsers              AppUser                @relation(fields: [user_id], references: [id])
+  user_id               String
+  autoRenew             Boolean                @default(false) @map("auto_renew")
+  createdAt             DateTime?              @default(now()) @map("created_at") @db.Timestamp(6)
+  customerSubscriptions CustomerSubscription[]
+  endDate               DateTime?              @map("end_date") @db.Date
+  id                    String                 @id @default(cuid()) @map("subscription_id") @db.VarChar(25)
+  paymentStatus         String                 @map("payment_status") @db.VarChar(50)
+  startDate             DateTime               @map("start_date") @db.Date
+  status                String                 @db.VarChar(50)
+  subscriptionPlans     SubscriptionPlan       @relation(fields: [plan_id], references: [id])
+  plan_id               String
+  updatedAt             DateTime?              @map("updated_at") @db.Timestamp(6)
+
+  @@map("Subscriptions")
+}
+
+model TaxRateInformation {
+  cgstRate            Decimal?   @map("cgst_rate") @db.Decimal(3, 2)
+  createdAt           DateTime?  @default(now()) @map("created_at") @db.Timestamp(6)
+  id                  String     @id @default(cuid()) @map("taxrate_information_id") @db.VarChar(25)
+  netTaxTransferrable Boolean?   @default(false) @map("net_tax_transferrable")
+  restaurants         Restaurant @relation(fields: [restaurant_id], references: [id])
+  restaurant_id       String
+  sgstRate            Decimal?   @map("sgst_rate") @db.Decimal(3, 2)
+  updatedAt           DateTime?  @map("updated_at") @db.Timestamp(6)
+}
+
+model TimeWindow {
+  comboItemWindowMap      ComboItemWindowMap[]
+  discountWindowMap       DiscountWindowMap[]
+  id                      String                    @id @default(cuid()) @map("time_window_id") @db.VarChar(25)
+  menuItemsWindowMap      MenuItemsWindowMap[]
+  restaurantTimeWindowMap RestaurantTimeWindowMap[]
+  windowEnd               DateTime?                 @map("window_end") @db.Time(6)
+  windowStart             DateTime?                 @map("window_start") @db.Time(6)
+}
+
+model UserCustomerLookup {
+  appUsers   AppUser  @relation(fields: [user_id], references: [id])
+  user_id    String
+  customers  Customer @relation(fields: [customerid], references: [id])
+  customerid String
+  id         String   @id @default(cuid()) @map("user_customer_lookup_id") @db.VarChar(25)
+}
+
+model UserFeedback {
+  appUsers     AppUser   @relation(fields: [user_id], references: [id])
+  user_id      String
+  createdAt    DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  feedbackText String?   @map("feedback_text") @db.VarChar(500)
+  id           String    @id @default(cuid()) @map("feedback_id") @db.VarChar(25)
+  updatedAt    DateTime? @map("updated_at") @db.Timestamp(6)
+
+  @@map("UserFeedbacks")
+}
+
+model UsersHashtagsMap {
+  appUsers   AppUser @relation(fields: [user_id], references: [id])
+  user_id    String
+  hashtags   Hashtag @relation(fields: [hashtag_id], references: [id])
+  hashtag_id String
+  id         String  @id @default(cuid()) @map("hashtag_map_id") @db.VarChar(25)
+}
+
+enum EnumAppUserAccountStatus {
+  Live
+  Is_Disabled
+  Is_Deleted
+}
+
+enum EnumComboGroupComboType {
+  Default
+  Customizable
+}
+
+enum EnumComboItemWindowMapTimeWindowDay {
+  Monday
+  Tuesday
+  Wednesday
+  Thursday
+  Friday
+  Saturday
+  Sunday
+  All_Days
+}
+
+enum EnumComplaintsBookIssueCategory {
+  Order_Cancellation
+  Missing_Items
+  Inadequate_Quantity
+  Food_Quality
+  Packaging_Issues
+  Delivery_Issues
+  Payment_Issues
+  Other_Issues
+}
+
+enum EnumComplaintsBookRefundEligibility {
+  No_Refund
+  Customer_Refund
+  Merchant_Refund
+  Both
+}
+
+enum EnumComplaintsBookRefundMode {
+  Wallet
+  Original_Payment_Method
+}
+
+enum EnumComplaintsBookRefundType {
+  Full
+  Partial
+  Custom
+}
+
+enum EnumCustomerGender {
+  Male
+  Female
+  Other
+  Prefer_not_to_disclose
+}
+
+enum EnumDiscountWindowMapTimeWindowDay {
+  Monday
+  Tuesday
+  Wednesday
+  Thursday
+  Friday
+  Saturday
+  Sunday
+  All_Days
+}
+
+enum EnumMenuItemsWindowMapTimeWindowDay {
+  Monday
+  Tuesday
+  Wednesday
+  Thursday
+  Friday
+  Saturday
+  Sunday
+  All_Days
+}
+
+enum EnumMerchantInvoiceInvoiceStatus {
+  Invoice_Generated
+  Invoice_Sent
+  Error_Found
+}
+
+enum EnumMerchantInvoiceInvoiceType {
+  Online_Order
+  Dine_In
+  Take_Away
+  Recovery
+}
+
+enum EnumOrderHistoryOrderType {
+  Delivery
+  TakeAway
+  DineIn
+}
+
+enum EnumPayoutCyclePayoutStatus {
+  Cycle_Inprogress
+  Cycle_Complete
+  Statement_Generated
+  Payout_In_Process
+  Settled
+}
+
+enum EnumPortalUsersRelationsLookupUserRole {
+  Owner
+  Manager
+  Staff
+  Account_Manager
+}
+
+enum EnumRestaurantTimeWindowMapDayOfTheWeek {
+  Monday
+  Tuesday
+  Wednesday
+  Thursday
+  Friday
+  Saturday
+  Sunday
+}
+
+enum EnumRestaurantClosureStatus {
+  Temporarily_Closed
+  Permanently_Closed
+}
+
+enum EnumRestaurantPackagingFeeType {
+  Item
+  Order
+  None
+}

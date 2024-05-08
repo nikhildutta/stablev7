@@ -1,0 +1,32 @@
+import { StringNullableFilter } from "../../util/StringNullableFilter";
+import { DateTimeNullableFilter } from "../../util/DateTimeNullableFilter";
+import { AppUserWhereUniqueInput } from "../appUser/AppUserWhereUniqueInput";
+import { StringFilter } from "../../util/StringFilter";
+
+export type SsoLookupWhereInput = {
+  appleEmail?: StringNullableFilter;
+  appleFamilyName?: StringNullableFilter;
+  appleGivenName?: StringNullableFilter;
+  appleRefreshToken?: StringNullableFilter;
+  appleTokenExpiresAt?: DateTimeNullableFilter;
+  appleUserId?: StringNullableFilter;
+  appUsers?: AppUserWhereUniqueInput;
+  createdAt?: DateTimeNullableFilter;
+  facebookAccessToken?: StringNullableFilter;
+  facebookEmail?: StringNullableFilter;
+  facebookName?: StringNullableFilter;
+  facebookTokenExpiresAt?: DateTimeNullableFilter;
+  facebookUserId?: StringNullableFilter;
+  googleEmail?: StringNullableFilter;
+  googleFamilyName?: StringNullableFilter;
+  googleGivenName?: StringNullableFilter;
+  googleRefreshToken?: StringNullableFilter;
+  googleTokenExpiresAt?: DateTimeNullableFilter;
+  googleUserId?: StringNullableFilter;
+  id?: StringFilter;
+  twitterAccessToken?: StringNullableFilter;
+  twitterHandle?: StringNullableFilter;
+  twitterTokenSecret?: StringNullableFilter;
+  twitterUserId?: StringNullableFilter;
+  updatedAt?: DateTimeNullableFilter;
+};
