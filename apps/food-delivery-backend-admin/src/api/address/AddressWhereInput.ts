@@ -1,0 +1,31 @@
+import { AccountsAddressMapListRelationFilter } from "../accountsAddressMap/AccountsAddressMapListRelationFilter";
+import { StringNullableFilter } from "../../util/StringNullableFilter";
+import { ContactDetailListRelationFilter } from "../contactDetail/ContactDetailListRelationFilter";
+import { DateTimeNullableFilter } from "../../util/DateTimeNullableFilter";
+import { CustomerAddressMapListRelationFilter } from "../customerAddressMap/CustomerAddressMapListRelationFilter";
+import { DeliveryInstructionAddressMapListRelationFilter } from "../deliveryInstructionAddressMap/DeliveryInstructionAddressMapListRelationFilter";
+import { GeoLocationListRelationFilter } from "../geoLocation/GeoLocationListRelationFilter";
+import { StringFilter } from "../../util/StringFilter";
+import { BooleanNullableFilter } from "../../util/BooleanNullableFilter";
+import { OrderHistoryListRelationFilter } from "../orderHistory/OrderHistoryListRelationFilter";
+
+export type AddressWhereInput = {
+  accountsAddressMap?: AccountsAddressMapListRelationFilter;
+  addressLine1?: StringNullableFilter;
+  addressLine2?: StringNullableFilter;
+  addressLine3?: StringNullableFilter;
+  city?: StringNullableFilter;
+  contactDetails?: ContactDetailListRelationFilter;
+  country?: StringNullableFilter;
+  createdAt?: DateTimeNullableFilter;
+  customerAddressMap?: CustomerAddressMapListRelationFilter;
+  deliveryInstructionAddressMap?: DeliveryInstructionAddressMapListRelationFilter;
+  geoLocations?: GeoLocationListRelationFilter;
+  id?: StringFilter;
+  isPrimary?: BooleanNullableFilter;
+  nickName?: StringNullableFilter;
+  orderHistory?: OrderHistoryListRelationFilter;
+  pincode?: StringNullableFilter;
+  state?: StringNullableFilter;
+  updatedAt?: DateTimeNullableFilter;
+};
