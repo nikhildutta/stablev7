@@ -1,0 +1,38 @@
+import { Decimal } from "decimal.js";
+import { DailyMenuItemStockUpdateManyWithoutMenuItemsInput } from "./DailyMenuItemStockUpdateManyWithoutMenuItemsInput";
+import { DiscountMenuItemUpdateManyWithoutMenuItemsInput } from "./DiscountMenuItemUpdateManyWithoutMenuItemsInput";
+import { FavouriteMenuItemUpdateManyWithoutMenuItemsInput } from "./FavouriteMenuItemUpdateManyWithoutMenuItemsInput";
+import { ItemPackagingFeeUpdateManyWithoutMenuItemsInput } from "./ItemPackagingFeeUpdateManyWithoutMenuItemsInput";
+import { MenuItemIngredientUpdateManyWithoutMenuItemsInput } from "./MenuItemIngredientUpdateManyWithoutMenuItemsInput";
+import { MenuItemsHashtagsMapUpdateManyWithoutMenuItemsInput } from "./MenuItemsHashtagsMapUpdateManyWithoutMenuItemsInput";
+import { MenuItemsOptionsGroupUpdateManyWithoutMenuItemsInput } from "./MenuItemsOptionsGroupUpdateManyWithoutMenuItemsInput";
+import { MenuItemsWindowMapUpdateManyWithoutMenuItemsInput } from "./MenuItemsWindowMapUpdateManyWithoutMenuItemsInput";
+import { MenuSubCategoryWhereUniqueInput } from "../menuSubCategory/MenuSubCategoryWhereUniqueInput";
+
+export type MenuItemUpdateInput = {
+  availableQuantity?: number | null;
+  basePrice?: Decimal | null;
+  containsEgg?: boolean | null;
+  dailyMenuItemStock?: DailyMenuItemStockUpdateManyWithoutMenuItemsInput;
+  description?: string | null;
+  discountMenuItem?: DiscountMenuItemUpdateManyWithoutMenuItemsInput;
+  favouriteMenuItems?: FavouriteMenuItemUpdateManyWithoutMenuItemsInput;
+  imageUrl?: string | null;
+  ingredients?: string | null;
+  isActive?: boolean | null;
+  isDeliverable?: boolean | null;
+  isDineinAvailable?: boolean | null;
+  isLimitedStock?: boolean | null;
+  isPickup?: boolean | null;
+  isVegetarian?: boolean | null;
+  itemPackagingFee?: ItemPackagingFeeUpdateManyWithoutMenuItemsInput;
+  menuItemIngredients?: MenuItemIngredientUpdateManyWithoutMenuItemsInput;
+  menuItemsHashtagsMap?: MenuItemsHashtagsMapUpdateManyWithoutMenuItemsInput;
+  menuItemsOptionsGroups?: MenuItemsOptionsGroupUpdateManyWithoutMenuItemsInput;
+  menuItemsWindowMap?: MenuItemsWindowMapUpdateManyWithoutMenuItemsInput;
+  menuSubCategories?: MenuSubCategoryWhereUniqueInput;
+  name?: string | null;
+  preparationTime?: number | null;
+  shareSlug?: string | null;
+  updatedAt?: Date | null;
+};
